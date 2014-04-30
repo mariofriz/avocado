@@ -29,6 +29,7 @@ public class Client extends Observable {
 
     public Client() throws SocketException {
         this.socket = new DatagramSocket();
+        this.socket.setSoTimeout(30000);
         this.remotePort = 69;
     }
 

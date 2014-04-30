@@ -15,7 +15,7 @@ import java.net.UnknownHostException;
 import java.util.Observable;
 
 /**
- *
+ * Client model
  * @author Mario
  */
 public class Client extends Observable {
@@ -34,7 +34,7 @@ public class Client extends Observable {
 
     public boolean sendFile(String localFile, String remoteFile) throws IOException {
         // Send WRQ packet
-        Packet packet = Packet.createWRQ(remoteFile);
+        Packet packet = PacketFactory.createWRQ(remoteFile);
         this.sendPacket(packet);
 
         // Log message
@@ -65,7 +65,7 @@ public class Client extends Observable {
             System.out.println("Sent length: " + sentLength);
             
             // Send DATA packet
-            Packet dataPacket = Packet.createData(data, blockNumber, length);            
+            Packet dataPacket = PacketFactory.createData(data, blockNumber, length);            
             this.sendPacket(dataPacket, transferPort);
             dataPacket.debug();
 
@@ -87,7 +87,7 @@ public class Client extends Observable {
 
     public void receiveFile(String remoteFile, String localFile) throws FileNotFoundException, IOException {
         // Send RRQ packet
-        Packet packet = Packet.createRRQ(remoteFile);
+        Packet packet = PacketFactory.createRRQ(remoteFile);
         this.sendPacket(packet);
 
         // Log message
@@ -117,7 +117,7 @@ public class Client extends Observable {
             out.write(lastPacket.getData());
 
             // Return acknowledge packet with block number
-            Packet ackPacket = Packet.createACK(lastPacket.getBlockNumber());
+            Packet ackPacket = PacketFactory.createACK(lastPacket.getBlockNumber());
             this.sendPacket(ackPacket);
 
             // Check if last data packet

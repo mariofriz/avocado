@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 
 /**
- *
+ * Controller for file sending
  * @author Mario
  */
 public class SendController {

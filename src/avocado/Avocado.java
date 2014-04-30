@@ -4,7 +4,7 @@ package avocado;
 import avocado.controllers.MainController;
 
 /**
- *
+ * Avocado main class
  * @author Mario
  */
 public class Avocado {

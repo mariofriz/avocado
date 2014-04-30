@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Controller for connect to a remote
  * @author Mario
  */
 public class ConnectController{

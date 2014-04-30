@@ -23,8 +23,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 /**
- * Main controller
- *
+ * Avocado main controller *
  * @author Mario
  */
 public class MainController implements Observer {

@@ -1,7 +1,7 @@
 package avocado.models;
 
 /**
- *
+ * Log model
  * @author Mario
  */
 public class Log {

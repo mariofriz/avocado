@@ -30,89 +30,66 @@ public class Packet {
     private int errorCode;
     private byte[] data;
     private int packetSize;
-    private int fromPort;
-    private InetAddress fromAddr;
+    private int serverAddress;
+    private InetAddress serverPort;
 
     public Packet() {
         this.data = new byte[MAX_PACKET_SIZE];
-
-        this.fromPort = -1;
-
-        this.fromAddr = null;
+        this.serverAddress = -1;
+        this.serverPort = null;
     }
 
     public static Packet createRRQ(String filename) {
-        Packet pkt = new Packet();
-
-        pkt.writeShort(RRQ);
-
-        pkt.writeString(filename);
-
-        pkt.writeByte((byte) 0);
-
-        return pkt;
+        Packet packet = new Packet();
+        packet.writeShort(RRQ);
+        packet.writeString(filename);
+        packet.writeByte((byte) 0);
+        return packet;
     }
 
-    /**
-     * Creates a write request packet for a given filename.
-     */
     public static Packet createWRQ(String filename) {
-        Packet pkt = new Packet();
-
-        pkt.writeShort(WRQ);
-
-        pkt.writeString(filename);
-
-        pkt.writeByte((byte) 0);
-
-        return pkt;
+        Packet packet = new Packet();
+        packet.writeShort(WRQ);
+        packet.writeString(filename);
+        packet.writeByte((byte) 0);
+        return packet;
     }
 
     public static Packet createData(byte[] data, int numBytes) {
-        Packet pkt = new Packet();
-
-        pkt.writeShort(DATA);
-
-        pkt.writeBytes(data, numBytes);
-
-        return pkt;
+        Packet packet = new Packet();
+        packet.writeShort(DATA);
+        packet.writeBytes(data, numBytes);
+        return packet;
     }
 
     public static Packet createACK() {
-        Packet pkt = new Packet();
-
-        pkt.writeShort(ACK);
-
-        return pkt;
+        Packet packet = new Packet();
+        packet.writeShort(ACK);
+        return packet;
     }
 
     public static Packet createERR(String errMsg) {
-        Packet pkt = new Packet();
-
-        pkt.writeShort(ERROR);
-
-        pkt.writeString(errMsg);
-
-        return pkt;
+        Packet packet = new Packet();
+        packet.writeShort(ERROR);
+        packet.writeString(errMsg);
+        return packet;
     }
 
-    public static Packet receivePacket(DatagramSocket net) throws IOException {
+    public static Packet receivePacket(DatagramSocket socket) throws IOException {
         System.out.println("Receiving packet");
-        Packet netPkt = new Packet();
+        Packet packet = new Packet();
 
-        byte[] netBytes = new byte[MAX_PACKET_SIZE];
+        byte[] buffer = new byte[MAX_PACKET_SIZE];
 
-        DatagramPacket recvPacket = new DatagramPacket(netBytes, netBytes.length);
-
-        // This should set recvPacket's length to the number of bytes received
-        net.receive(recvPacket);
+        DatagramPacket dataPacket = new DatagramPacket(buffer, buffer.length);
+        socket.receive(dataPacket);
 
         System.out.println("Received packet");
 
         // Parse packet
-        netPkt.parsePacket(recvPacket);
+        packet.parsePacket(dataPacket);
 
-        return netPkt;
+        return packet;
     }
 
     private void parsePacket(DatagramPacket packet) {
@@ -136,16 +113,16 @@ public class Packet {
         rawData.read(data, 0, packetSize);
 
         // Read port and address
-        fromPort = packet.getPort();
-        fromAddr = packet.getAddress();
+        serverAddress = packet.getPort();
+        serverPort = packet.getAddress();
     }
 
-    public int fromPort() {
-        return fromPort;
+    public int getServerAddress() {
+        return serverAddress;
     }
 
-    public InetAddress fromAddr() {
-        return fromAddr;
+    public InetAddress getServerPort() {
+        return serverPort;
     }
 
     public boolean writeByte(byte b) {
@@ -202,33 +179,8 @@ public class Packet {
         return data;
     }
 
-    public int packetSize() {
+    public int getPacketSize() {
         return packetSize;
-    }
-
-    public short getShort(int idx) {
-        return (short) ((data[idx] << 8) | data[idx + 1]);
-    }
-
-    public String getString(int idx) {
-        int numBytes = 0;
-
-        // Pass #1 to count bytes
-        for (int i = idx;; ++i) {
-            if (data[i] == 0) {
-                break;
-            }
-            ++numBytes;
-        }
-
-        byte[] strBytes = new byte[numBytes];
-
-        // Pass #2 to build string
-        for (int i = 0; i < numBytes; ++i) {
-            strBytes[i] = data[idx + i];
-        }
-
-        return new String(strBytes);
     }
 
     public boolean isRRQ() {
@@ -251,6 +203,7 @@ public class Packet {
         return opcode == ERROR;
     }
 
+    @Override
     public String toString() {
         return Arrays.toString(data);
     }

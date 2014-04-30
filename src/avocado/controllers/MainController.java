@@ -6,12 +6,15 @@ import avocado.views.MainView;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.text.BadLocationException;
@@ -45,6 +48,11 @@ public class MainController implements Observer {
         
         // Create main view
         this.view = new MainView();
+        try {
+            view.setIconImage(ImageIO.read(new File("resources/avocado.gif")));
+        } catch (IOException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         // Fire up client model
         try {
@@ -53,18 +61,16 @@ public class MainController implements Observer {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        try {
-            // Initialise server to localhost
-            this.client.setRemoteIp("127.0.0.1");
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
         // Listen to me
         this.initialiseListeners();
 
         // Welcome the new user
         this.view.getLogTextArea().setText("Avocado is ready to use!\n");
+        try {
+            this.client.setRemoteIp("127.0.0.1");
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         // Abracadabra!
         this.view.setVisible(true);

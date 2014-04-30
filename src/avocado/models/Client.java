@@ -30,7 +30,6 @@ public class Client extends Observable {
     public Client() throws SocketException {
         this.socket = new DatagramSocket();
         this.remotePort = 69;
-        System.out.println(System.getProperty("user.dir"));
     }
 
     public boolean sendFile(String localFile, String remoteFile) throws IOException {
@@ -62,8 +61,8 @@ public class Client extends Observable {
 
             System.out.println(sentLength);
             // Send DATA packet
-            packet = Packet.createData(data, length);
-            this.sendPacket(packet);
+            Packet dataPacket = Packet.createData(data, length);
+            this.sendPacket(dataPacket);
 
             // Wait for ACK
             ack = Packet.receivePacket(socket);
@@ -112,11 +111,11 @@ public class Client extends Observable {
             out.write(lastPacket.getData());
 
             // Return acknowledge packet
-            packet = Packet.createACK();
-            this.sendPacket(packet);
+            Packet ackPacket = Packet.createACK();
+            this.sendPacket(ackPacket);
 
             // Check if last data packet
-            if (lastPacket.packetSize() < Packet.MAX_DATA_SIZE) {
+            if (lastPacket.getPacketSize() < Packet.MAX_DATA_SIZE) {
                 System.out.println("Finished transfer!");
                 this.logMessage(remoteFile + " successfully received", LogType.SUCCESS);
                 break;
@@ -125,7 +124,7 @@ public class Client extends Observable {
     }
 
     private void sendPacket(Packet packet) throws IOException {
-        DatagramPacket sendPacket = new DatagramPacket(packet.getData(), packet.packetSize(), remoteHost, remotePort);
+        DatagramPacket sendPacket = new DatagramPacket(packet.getData(), packet.getPacketSize(), remoteHost, remotePort);
         this.socket.send(sendPacket);
     }
     

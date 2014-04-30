@@ -70,7 +70,7 @@ public class Client extends Observable {
 
             // Check if file has been sent completely
             if (sentLength >= totalLength) {
-                this.logMessage(remoteFile + " successfully sent");
+                this.logMessage(remoteFile + " successfully sent", LogType.SUCCESS);
                 break;
             }
         }
@@ -118,8 +118,7 @@ public class Client extends Observable {
             // Check if last data packet
             if (lastPacket.packetSize() < Packet.MAX_DATA_SIZE) {
                 System.out.println("Finished transfer!");
-                // Log message
-                this.logMessage(remoteFile + "successfully received");
+                this.logMessage(remoteFile + " successfully received", LogType.SUCCESS);
                 break;
             }
         }
@@ -129,10 +128,15 @@ public class Client extends Observable {
         DatagramPacket sendPacket = new DatagramPacket(packet.getData(), packet.packetSize(), remoteHost, remotePort);
         this.socket.send(sendPacket);
     }
-
+    
     private void logMessage(String message) {
         this.setChanged();
-        this.notifyObservers(message);
+        this.notifyObservers(new Log(message, LogType.NORMAL));
+    }
+
+    private void logMessage(String message, LogType type) {
+        this.setChanged();
+        this.notifyObservers(new Log(message, type));
     }
 
     public String getRemoteIp() {
@@ -142,7 +146,7 @@ public class Client extends Observable {
     public void setRemoteIp(String remoteIp) throws UnknownHostException {
         this.remoteIp = remoteIp;
         this.remoteHost = InetAddress.getByName(remoteIp);
-        this.logMessage("New remote host: " + this.remoteIp);
+        this.logMessage("New remote host: " + this.remoteIp, LogType.INFO);
     }
 
 }

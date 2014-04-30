@@ -1,7 +1,9 @@
 package avocado.controllers;
 
 import avocado.models.Client;
+import avocado.models.Log;
 import avocado.views.MainView;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.SocketException;
@@ -12,6 +14,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 /**
  * Main controller
@@ -24,6 +30,7 @@ public class MainController implements Observer {
     private Client client;
 
     public MainController() {
+        // Set look & feel
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException ex) {
@@ -35,8 +42,11 @@ public class MainController implements Observer {
         } catch (UnsupportedLookAndFeelException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        // Create main view
         this.view = new MainView();
 
+        // Fire up client model
         try {
             this.client = new Client();
         } catch (SocketException ex) {
@@ -50,10 +60,13 @@ public class MainController implements Observer {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        // Listen to me
         this.initialiseListeners();
 
-        this.view.getLogTextArea().append("Avocado is ready to use!\n");
+        // Welcome the new user
+        this.view.getLogTextArea().setText("Avocado is ready to use!\n");
 
+        // Abracadabra!
         this.view.setVisible(true);
     }
 
@@ -68,8 +81,38 @@ public class MainController implements Observer {
 
     @Override
     public void update(Observable o, Object arg) {
+        // Get Log object
+        Log log = (Log)arg;
+        
         System.out.println("update");
-        this.view.getLogTextArea().append(arg + "\n");
+        StyledDocument doc = view.getLogTextArea().getStyledDocument();
+        
+        // Set style
+        Style style = view.getLogTextArea().addStyle("Style", null);        
+        switch (log.getType()) {
+            case NORMAL:
+                StyleConstants.setForeground(style, Color.black);
+                break;
+            case INFO:
+                StyleConstants.setForeground(style, Color.blue);
+                break;
+            case ERROR:
+                StyleConstants.setForeground(style, Color.red);
+                break;
+            case SUCCESS:
+                StyleConstants.setForeground(style, Color.green);
+                break;                
+        }
+        
+        // Append line ending
+        String text = log.getMessage() + "\n";
+        
+        // Write to text pane
+        try {
+            doc.insertString(doc.getLength(), text, style);
+        } catch (BadLocationException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     class ConnectListener implements ActionListener {

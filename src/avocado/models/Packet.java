@@ -2,11 +2,14 @@ package avocado.models;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Packet class
@@ -25,24 +28,26 @@ public class Packet {
     public static final int MAX_DATA_SIZE = 512;
 
     private ByteArrayInputStream rawData;
-    private int opcode;
-    private int blockNumber;
-    private int errorCode;
+    private short opcode;
+    private short blockNumber;
+    private short errorCode;
     private byte[] data;
     private int packetSize;
-    private int serverAddress;
-    private InetAddress serverPort;
+    private int serverPort;
+    private InetAddress serverAddress;
 
     public Packet() {
         this.data = new byte[MAX_PACKET_SIZE];
-        this.serverAddress = -1;
-        this.serverPort = null;
+        this.serverPort = -1;
+        this.serverAddress = null;
     }
 
     public static Packet createRRQ(String filename) {
         Packet packet = new Packet();
         packet.writeShort(RRQ);
         packet.writeString(filename);
+        packet.writeByte((byte) 0);
+        packet.writeString(Client.TRANSFER_MODE);
         packet.writeByte((byte) 0);
         return packet;
     }
@@ -52,12 +57,15 @@ public class Packet {
         packet.writeShort(WRQ);
         packet.writeString(filename);
         packet.writeByte((byte) 0);
+        packet.writeString(Client.TRANSFER_MODE);
+        packet.writeByte((byte) 0);
         return packet;
     }
 
-    public static Packet createData(byte[] data, int numBytes) {
+    public static Packet createData(byte[] data, short blockNumber, int numBytes) {
         Packet packet = new Packet();
         packet.writeShort(DATA);
+        packet.writeShort(blockNumber);
         packet.writeBytes(data, numBytes);
         return packet;
     }
@@ -65,6 +73,13 @@ public class Packet {
     public static Packet createACK() {
         Packet packet = new Packet();
         packet.writeShort(ACK);
+        return packet;
+    }
+
+    public static Packet createACK(short blockNumber) {
+        Packet packet = new Packet();
+        packet.writeShort(ACK);
+        packet.writeShort(blockNumber);
         return packet;
     }
 
@@ -84,45 +99,73 @@ public class Packet {
         DatagramPacket dataPacket = new DatagramPacket(buffer, buffer.length);
         socket.receive(dataPacket);
 
-        System.out.println("Received packet");
-
+        //System.out.println("Received packet");
         // Parse packet
         packet.parsePacket(dataPacket);
 
         return packet;
     }
 
-    private void parsePacket(DatagramPacket packet) {
-        rawData = new ByteArrayInputStream(packet.getData(), 0, packet.getLength());
+    private void parsePacket(ByteArrayInputStream raw, int port, InetAddress address) {
+        rawData = raw;
 
         // Read opcode
         byte[] byteCode = new byte[2];
         rawData.read(byteCode, 0, 2);
-        opcode = new BigInteger(byteCode).intValue();
+        opcode = new BigInteger(byteCode).shortValue();
 
         // Read next 2 bytes for errorCode or blockNumber
         rawData.read(byteCode, 0, 2);
         if (opcode == ERROR) {
-            errorCode = new BigInteger(byteCode).intValue();
+            errorCode = new BigInteger(byteCode).shortValue();
         } else {
-            blockNumber = new BigInteger(byteCode).intValue();
+            blockNumber = new BigInteger(byteCode).shortValue();
         }
 
         // Read data if available
         packetSize = rawData.available();
+        data = new byte[packetSize];
         rawData.read(data, 0, packetSize);
 
         // Read port and address
-        serverAddress = packet.getPort();
-        serverPort = packet.getAddress();
+        serverAddress = address;
+        serverPort = port;
     }
 
-    public int getServerAddress() {
+    private void parsePacket(DatagramPacket packet) {
+        ByteArrayInputStream raw = new ByteArrayInputStream(packet.getData(), 0, packet.getLength());
+        this.parsePacket(raw, packet.getPort(), packet.getAddress());
+    }
+
+    public void debug() {
+        if (this.serverPort == -1) {
+            this.parsePacket(new ByteArrayInputStream(data, 0, packetSize), serverPort, serverAddress);
+        }
+        try {
+            System.out.println("opcode: " + opcode + "; number: " + blockNumber + "; dataSize: " + packetSize + " data: " + new String(data, "UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(Packet.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public InetAddress getServerAddress() {
         return serverAddress;
     }
 
-    public InetAddress getServerPort() {
+    public int getServerPort() {
         return serverPort;
+    }
+
+    public short getOpcode() {
+        return opcode;
+    }
+
+    public short getBlockNumber() {
+        return blockNumber;
+    }
+
+    public short getErrorCode() {
+        return errorCode;
     }
 
     public boolean writeByte(byte b) {

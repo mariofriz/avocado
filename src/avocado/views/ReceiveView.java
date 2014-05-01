@@ -62,6 +62,7 @@ public class ReceiveView extends javax.swing.JDialog {
         setTitle("Receive file");
         setAlwaysOnTop(true);
         setMinimumSize(new java.awt.Dimension(250, 190));
+        setModal(true);
         setName("receiveFrame"); // NOI18N
         setResizable(false);
 

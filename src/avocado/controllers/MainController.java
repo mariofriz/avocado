@@ -116,6 +116,7 @@ public class MainController implements Observer {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            client.close();
             view.dispose();
         }
 

@@ -27,6 +27,7 @@ public class Client extends Observable {
     private DatagramSocket socket;
     private String remoteIp;
     private InetAddress remoteHost;
+    private Thread workerThread;
     private int remotePort;
 
     public Client() throws SocketException {
@@ -37,14 +38,22 @@ public class Client extends Observable {
 
     public void sendFile(String localFile, String remoteFile) throws IOException {
         SendWorker worker = new SendWorker(remoteHost, socket, localFile, remoteFile);
-        Thread t = new Thread(worker);
-        t.start();
+        workerThread = new Thread(worker);
+        workerThread.start();
     }
 
     public void receiveFile(String remoteFile, String localFile) throws FileNotFoundException, IOException {
         ReceiveWorker worker = new ReceiveWorker(remoteHost, socket, localFile, remoteFile);
-        Thread t = new Thread(worker);
-        t.start();
+        workerThread = new Thread(worker);
+        workerThread.start();
+    }
+    
+    public void close()
+    {
+        if (workerThread != null) {
+            workerThread.interrupt();
+        }
+        socket.close();
     }
 
     public String getRemoteIp() {

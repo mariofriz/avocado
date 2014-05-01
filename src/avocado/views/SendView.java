@@ -68,6 +68,7 @@ public class SendView extends javax.swing.JDialog {
         setTitle("Send file");
         setAlwaysOnTop(true);
         setMinimumSize(new java.awt.Dimension(250, 190));
+        setModal(true);
         setName("sendFrame"); // NOI18N
         setResizable(false);
 

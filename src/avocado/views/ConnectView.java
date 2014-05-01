@@ -47,6 +47,7 @@ public class ConnectView extends javax.swing.JDialog {
         setTitle("Connect");
         setAlwaysOnTop(true);
         setMinimumSize(new java.awt.Dimension(200, 160));
+        setModal(true);
         setName("connectFrame"); // NOI18N
         setResizable(false);
 

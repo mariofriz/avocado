@@ -42,7 +42,7 @@ public class Packet {
     }
 
     public static Packet receivePacket(DatagramSocket socket) throws IOException {
-        System.out.println("Receiving packet");
+        //System.out.println("Receiving packet");
         Packet packet = new Packet();
 
         byte[] buffer = new byte[MAX_PACKET_SIZE];

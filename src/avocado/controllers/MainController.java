@@ -1,9 +1,8 @@
 package avocado.controllers;
 
 import avocado.models.Client;
-import avocado.models.Log;
+import avocado.helpers.AvocadoLogger;
 import avocado.views.MainView;
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -17,10 +16,6 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 
 /**
  * Avocado main controller *
@@ -48,7 +43,7 @@ public class MainController implements Observer {
         // Create main view
         this.view = new MainView();
         try {
-            view.setIconImage(ImageIO.read(new File("resources/avocado.gif")));
+            view.setIconImage(ImageIO.read(new File("resources/small-icon.png")));
         } catch (IOException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -62,17 +57,20 @@ public class MainController implements Observer {
 
         // Listen to me
         this.initialiseListeners();
+        
+        // Abracadabra!
+        this.view.setVisible(true);
+        
+        // Initialise logger
+        AvocadoLogger.setInstance(new AvocadoLogger(this.view.getLogTextArea()));
 
-        // Welcome the new user
-        this.view.getLogTextArea().setText("Avocado is ready to use!\n");
+        // Welcome the new user and set default IP
+        AvocadoLogger.log("Avocado is ready to use!");
         try {
-            this.client.setRemoteIp("127.0.0.1");
+            this.client.setRemoteIp(Client.DEFAULT_IP);
         } catch (UnknownHostException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        // Abracadabra!
-        this.view.setVisible(true);
     }
 
     private void initialiseListeners() {
@@ -81,43 +79,11 @@ public class MainController implements Observer {
         this.view.getConnectButton().addActionListener(new ConnectListener());
         this.view.getReceiveButton().addActionListener(new ReceiveListener());
 
-        this.client.addObserver(this);
+        //this.client.addObserver(this);
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        // Get Log object
-        Log log = (Log)arg;
-        
-        System.out.println("update");
-        StyledDocument doc = view.getLogTextArea().getStyledDocument();
-        
-        // Set style
-        Style style = view.getLogTextArea().addStyle("Style", null);        
-        switch (log.getType()) {
-            case NORMAL:
-                StyleConstants.setForeground(style, Color.black);
-                break;
-            case INFO:
-                StyleConstants.setForeground(style, Color.blue);
-                break;
-            case ERROR:
-                StyleConstants.setForeground(style, Color.red);
-                break;
-            case SUCCESS:
-                StyleConstants.setForeground(style, Color.green);
-                break;                
-        }
-        
-        // Append line ending
-        String text = log.getMessage() + "\n";
-        
-        // Write to text pane
-        try {
-            doc.insertString(doc.getLength(), text, style);
-        } catch (BadLocationException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     class ConnectListener implements ActionListener {

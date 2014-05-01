@@ -23,6 +23,7 @@ public class Client extends Observable {
     public static final String TRANSFER_MODE = "netascii";
     public static final int DEFAULT_PORT = 69;
     public static final String DEFAULT_IP = "127.0.0.1";
+    public static final int DEFAULT_TIMEOUT = 30000; //30secs
 
     private DatagramSocket socket;
     private String remoteIp;
@@ -32,7 +33,7 @@ public class Client extends Observable {
 
     public Client() throws SocketException {
         this.socket = new DatagramSocket();
-        this.socket.setSoTimeout(30000);
+        this.socket.setSoTimeout(DEFAULT_TIMEOUT);
         this.remotePort = DEFAULT_PORT;
     }
 

@@ -1,8 +1,10 @@
 package avocado.models.workers;
 
 import avocado.helpers.AvocadoLogger;
+import avocado.models.Client;
 import avocado.models.Packet;
 import avocado.models.PacketFactory;
+import avocado.models.Error;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,52 +29,63 @@ public class SendWorker extends AbstractWorker {
             // Send WRQ packet
             Packet packet = PacketFactory.createWRQ(remoteFile);
             this.sendPacket(packet);
-            
+
             // Log message
             AvocadoLogger.log("Sent WRQ for " + remoteFile);
-            
+
             // Prepare buffer and file reader
             byte[] data;
             DataInputStream in = new DataInputStream(new FileInputStream(localFile));
-            
+
             short blockNumber = 1;
             int totalLength = in.available();
             int sentLength = 0;
             //System.out.println("Total length: " + totalLength);
             
-            // Wait for ACK
-            Packet ack = Packet.receivePacket(socket);
             //System.out.println("server ack " + ack.getServerAddress().toString() + "@" + ack.getServerPort());
-            int transferPort = ack.getServerPort();
-            //ack.debug();
             
+            int transferPort = Client.DEFAULT_PORT;
             // Get ready to send
             AvocadoLogger.info("Sending " + remoteFile);
-            while (true) {
-                // Read file content
-                data = new byte[Packet.MAX_DATA_SIZE];
-                int length = in.read(data, 0, Packet.MAX_DATA_SIZE);
-                sentLength += length;
-                
-                //System.out.println("Sent length: " + sentLength);
-                
-                // Send DATA packet
-                Packet dataPacket = PacketFactory.createData(data, blockNumber, length);
-                this.sendPacket(dataPacket, transferPort);
-                //dataPacket.debug();
-                
+            Packet ack;
+            boolean finished = false;
+            while (!finished) {
+
                 // Wait for ACK
                 ack = Packet.receivePacket(socket);
                 //ack.debug();
-                
-                // Check if file has been sent completely
-                if (sentLength >= totalLength) {
-                    AvocadoLogger.success(remoteFile + " successfully sent");
-                    break;
+
+                //Check if the server's port has changed
+                if (transferPort != ack.getServerPort()) {
+                    transferPort = ack.getServerPort();
                 }
-                
-                blockNumber++;
+                //Check if there is no error sent by the server
+                if (ack.getErrorCode() == Error.ERROR_NO_ERROR) {
+
+                    // Read file content
+                    data = new byte[Packet.MAX_DATA_SIZE];
+                    int length = in.read(data, 0, Packet.MAX_DATA_SIZE);
+                    sentLength += length;
+
+                    //System.out.println("Sent length: " + sentLength);
+                    // Send DATA packet
+                    Packet dataPacket = PacketFactory.createData(data, blockNumber, length);
+                    this.sendPacket(dataPacket, transferPort);
+                    //dataPacket.debug();
+
+                    // Check if file has been sent completely
+                    if (sentLength >= totalLength) {
+                        AvocadoLogger.success(remoteFile + " successfully sent");
+                        finished = true;
+                    }
+
+                    blockNumber++;
+                } else {
+                    AvocadoLogger.error("Error : " + Error.ERROR_MESSAGES[ack.getErrorCode()]);
+                    finished = true;
+                }
             }
+            in.close();
         } catch (IOException ex) {
             Logger.getLogger(SendWorker.class.getName()).log(Level.SEVERE, null, ex);
         }

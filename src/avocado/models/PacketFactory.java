@@ -57,7 +57,10 @@ public class PacketFactory {
     public static Packet createERR(String errMsg) {
         Packet packet = new Packet();
         packet.writeShort(ERROR);
+        
+        //packet.writeShort(error); //Error Code
         packet.writeString(errMsg);
+        packet.writeByte((byte) 0);
         return packet;
     }
 

@@ -39,6 +39,7 @@ public class Packet {
         this.data = new byte[MAX_PACKET_SIZE];
         this.serverPort = -1;
         this.serverAddress = null;
+        this.errorCode=Error.ERROR_NO_ERROR;
     }
 
     public static Packet receivePacket(DatagramSocket socket) throws IOException {

@@ -9,8 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -21,13 +19,13 @@ import javax.swing.UnsupportedLookAndFeelException;
  * Avocado main controller *
  * @author Mario
  */
-public class MainController implements Observer {
+public class MainController {
 
     private MainView view;
     private Client client;
 
     public MainController() {
-        // Set look & feel
+        // Set look & feel to OS default
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
@@ -72,12 +70,6 @@ public class MainController implements Observer {
         this.view.getSendButton().addActionListener(new SendListener());
         this.view.getConnectButton().addActionListener(new ConnectListener());
         this.view.getReceiveButton().addActionListener(new ReceiveListener());
-
-        //this.client.addObserver(this);
-    }
-
-    @Override
-    public void update(Observable o, Object arg) {
     }
 
     class ConnectListener implements ActionListener {

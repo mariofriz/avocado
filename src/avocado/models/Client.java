@@ -3,22 +3,20 @@ package avocado.models;
 import avocado.helpers.AvocadoLogger;
 import avocado.models.workers.ReceiveWorker;
 import avocado.models.workers.SendWorker;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Observable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Client model
  * @author Mario
  */
-public class Client extends Observable {
+public class Client {
 
     public static final String TRANSFER_MODE = "netascii";
     public static final int DEFAULT_PORT = 69;
@@ -28,32 +26,31 @@ public class Client extends Observable {
     private DatagramSocket socket;
     private String remoteIp;
     private InetAddress remoteHost;
-    private Thread workerThread;
+    private ExecutorService threadPool;
     private int remotePort;
 
     public Client() throws SocketException {
         this.socket = new DatagramSocket();
         this.socket.setSoTimeout(DEFAULT_TIMEOUT);
         this.remotePort = DEFAULT_PORT;
+        this.threadPool = Executors.newCachedThreadPool();
     }
 
     public void sendFile(String localFile, String remoteFile) throws IOException {
-        SendWorker worker = new SendWorker(remoteHost, socket, localFile, remoteFile);
-        workerThread = new Thread(worker);
-        workerThread.start();
+        Thread sendThread = new Thread(new SendWorker(remoteHost, socket, localFile, remoteFile));
+        threadPool.submit(sendThread);
     }
 
     public void receiveFile(String remoteFile, String localFile) throws FileNotFoundException, IOException {
-        ReceiveWorker worker = new ReceiveWorker(remoteHost, socket, localFile, remoteFile);
-        workerThread = new Thread(worker);
-        workerThread.start();
+        Thread receiveThread = new Thread(new ReceiveWorker(remoteHost, socket, localFile, remoteFile));
+        threadPool.submit(receiveThread);
     }
     
     public void close()
     {
-        if (workerThread != null) {
-            workerThread.interrupt();
-        }
+        // Shutdown all workers
+        threadPool.shutdown();
+        // Close socket
         socket.close();
     }
 

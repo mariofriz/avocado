@@ -1,6 +1,7 @@
 
 package avocado.controllers;
 
+import avocado.helpers.AvocadoLogger;
 import avocado.models.Client;
 import avocado.views.ConnectView;
 import java.awt.event.ActionEvent;
@@ -39,7 +40,7 @@ public class ConnectController{
             try {
                 client.setRemoteIp(view.getHostTextField().getText());
             } catch (UnknownHostException ex) {
-                Logger.getLogger(ConnectController.class.getName()).log(Level.SEVERE, null, ex);
+                AvocadoLogger.error("Unable to resolve host");
             } finally {
                 view.dispose();
             }

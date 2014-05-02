@@ -39,5 +39,7 @@ public abstract class AbstractWorker extends Observable implements Runnable {
     
     @Override
     public abstract void run();
+    
+    public abstract void close();
 
 }

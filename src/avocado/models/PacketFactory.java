@@ -54,12 +54,11 @@ public class PacketFactory {
         return packet;
     }
 
-    public static Packet createERR(String errMsg) {
+    public static Packet createERR(Short errCode) {
         Packet packet = new Packet();
         packet.writeShort(ERROR);
-        
-        //packet.writeShort(error); //Error Code
-        packet.writeString(errMsg);
+        packet.writeShort(errCode);
+        packet.writeString(Error.ERROR_MESSAGES[errCode]);
         packet.writeByte((byte) 0);
         return packet;
     }

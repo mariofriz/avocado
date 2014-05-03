@@ -36,6 +36,7 @@ public class SendWorker extends AbstractWorker {
         // Send WRQ packet while timeout on request
         do {
             try {
+                timeout=false;
                 // Off we go
                 request = PacketFactory.createWRQ(remoteFile);
                 this.sendPacket(request);

@@ -128,6 +128,7 @@ public class ReceiveWorker extends AbstractWorker {
 
     public void clean() {
         if (file.exists()) {
+            this.close();
             file.delete();
         }
     }

@@ -82,6 +82,7 @@ public class ReceiveWorker extends AbstractWorker {
                 if (response.isERR()) {
                     // An error occured :(
                     AvocadoLogger.error("Server Error: " + Error.ERROR_MESSAGES[response.getErrorCode()]);
+                    System.out.println(remoteFile + ": CRRV = " + response.getErrorCode());
                     this.clean();
                     break;
                 } else if (response.getBlockNumber() == blockNumber) {
@@ -97,6 +98,7 @@ public class ReceiveWorker extends AbstractWorker {
                     if (response.getPacketSize() < Packet.MAX_DATA_SIZE) {
                         // Transfer is finished
                         AvocadoLogger.success(remoteFile + " successfully received");
+                        System.out.println(remoteFile + ": CRRV = 0");
                         finished = true;
                     }
                     // Transfer not finished go for next block

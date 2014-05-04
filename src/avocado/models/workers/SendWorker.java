@@ -64,8 +64,9 @@ public class SendWorker extends AbstractWorker {
         retries = 0;
 
         // Check for error
-        if (response.getOpcode() == Packet.ERROR) {
+        if (response.isERR()) {
             AvocadoLogger.error("Server Error: " + Error.ERROR_MESSAGES[response.getErrorCode()]);
+            System.out.println(remoteFile + ": CREM = " + response.getErrorCode());
             this.close();
             return;
         }
@@ -143,12 +144,14 @@ public class SendWorker extends AbstractWorker {
                 if (ackPacket.isERR()) {
                     // An error occured :(
                     AvocadoLogger.error("Server Error: " + Error.ERROR_MESSAGES[response.getErrorCode()]);
+                    System.out.println(remoteFile + ": CREM = " + response.getErrorCode());
                     break;
                 } else if (ackPacket.getBlockNumber() == blockNumber) {
                     // If we are here it's all good
                     if (sentLength >= totalLength) {
                         // Transfer is finished
                         AvocadoLogger.success(remoteFile + " successfully sent");
+                        System.out.println(remoteFile + ": CREM = 0");
                         break;
                     }
                     // Transfer not finished go for next block

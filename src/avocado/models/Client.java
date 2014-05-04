@@ -21,7 +21,7 @@ public class Client {
     public static final String TRANSFER_MODE = "netascii";
     public static final int DEFAULT_PORT = 69;
     public static final String DEFAULT_IP = "127.0.0.1";
-    public static final int DEFAULT_TIMEOUT = 30000; //30secs
+    public static final int DEFAULT_TIMEOUT = 15000; //15secs
 
     private String remoteIp;
     private InetAddress remoteHost;

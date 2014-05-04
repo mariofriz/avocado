@@ -25,7 +25,7 @@ public abstract class AbstractWorker extends Observable implements Runnable {
     public AbstractWorker(InetAddress remoteHost, String localFile, String remoteFile) throws SocketException {
         this.remoteHost = remoteHost;
         this.socket = new DatagramSocket();
-        this.socket.setSoTimeout(DEFAULT_TIMEOUT);
+        this.socket.setSoTimeout(Client.DEFAULT_TIMEOUT);
         this.localFile = localFile;
         this.remoteFile = remoteFile;
     }

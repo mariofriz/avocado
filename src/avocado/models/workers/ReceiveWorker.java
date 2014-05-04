@@ -70,6 +70,7 @@ public class ReceiveWorker extends AbstractWorker {
         short blockNumber = 1;
         boolean nextBlock = true;
         boolean finished = false;
+        int retries = 0;
 
         // File receiving loop
         while (!finished) {
@@ -85,6 +86,7 @@ public class ReceiveWorker extends AbstractWorker {
                     break;
                 } else if (response.getBlockNumber() == blockNumber) {
                     // If we are here it's all good
+                    retries = 0;
                     //Check if the server's port has changed
                     if (transferPort != response.getServerPort()) {
                         transferPort = response.getServerPort();
@@ -102,10 +104,18 @@ public class ReceiveWorker extends AbstractWorker {
                 } else {
                     // Block number do NOT match
                     nextBlock = false;
+                    retries++;
                 }
             } catch (IOException ex) {
                 AvocadoLogger.info("Timeout! Resending last packet of " + remoteFile);
+                retries++;
                 nextBlock = false;
+            }
+            
+            if (retries > 2) {
+                AvocadoLogger.error("3 timeouts : connection lost");
+                this.clean();
+                return;
             }
 
             if (nextBlock) {

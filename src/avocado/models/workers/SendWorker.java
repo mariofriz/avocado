@@ -33,11 +33,18 @@ public class SendWorker extends AbstractWorker {
         boolean timeout = false;
         int transferPort = Client.DEFAULT_PORT;
         Packet request, response = null;
+        int retries = 0;
 
         // Send WRQ packet while timeout on request
         do {
             try {
-                timeout=false;
+                if (retries > 2) {
+                    AvocadoLogger.error("3 timeouts : connection lost");
+                    this.close();
+                    return;
+                }
+
+                timeout = false;
                 // Off we go
                 request = PacketFactory.createWRQ(remoteFile);
                 this.sendPacket(request);
@@ -48,10 +55,14 @@ public class SendWorker extends AbstractWorker {
             } catch (IOException ex) {
                 // Something went wrong -> resend WRQ packet
                 timeout = true;
+                retries++;
                 AvocadoLogger.log("Timeout for WRQ on " + remoteFile);
             }
         } while (timeout);
-        
+
+        // Reset tries counter
+        retries = 0;
+
         // Check for error
         if (response.getOpcode() == Packet.ERROR) {
             AvocadoLogger.error("Server Error: " + Error.ERROR_MESSAGES[response.getErrorCode()]);
@@ -83,21 +94,20 @@ public class SendWorker extends AbstractWorker {
             this.close();
             return;
         }
-        
+
         // Get ready to send file
         AvocadoLogger.info("Sending " + remoteFile + "...");
         short blockNumber = 1;
         int sentLength = 0;
         Packet dataPacket = null, ackPacket;
         boolean nextBlock = true;
-        int retries = 0;
 
         //System.out.println("Total length: " + totalLength);
-        
         // File sending loop
         while (true) {
 
             if (nextBlock) {
+                retries = 0;
                 // Read file content
                 data = new byte[Packet.MAX_DATA_SIZE];
                 int length;
@@ -112,6 +122,14 @@ public class SendWorker extends AbstractWorker {
 
                 // Prepare DATA packet to send
                 dataPacket = PacketFactory.createData(data, blockNumber, length);
+            } else {
+                retries++;
+            }
+            
+            if (retries > 2) {
+                AvocadoLogger.error("3 timeouts : connection lost");
+                this.close();
+                return;
             }
 
             try {
@@ -126,8 +144,7 @@ public class SendWorker extends AbstractWorker {
                     // An error occured :(
                     AvocadoLogger.error("Server Error: " + Error.ERROR_MESSAGES[response.getErrorCode()]);
                     break;
-                }
-                else if (ackPacket.getBlockNumber() == blockNumber) {
+                } else if (ackPacket.getBlockNumber() == blockNumber) {
                     // If we are here it's all good
                     if (sentLength >= totalLength) {
                         // Transfer is finished

@@ -2,11 +2,13 @@
 package avocado.models.workers;
 
 import avocado.models.Client;
+import static avocado.models.Client.DEFAULT_TIMEOUT;
 import avocado.models.Packet;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.Observable;
 
 /**
@@ -20,9 +22,10 @@ public abstract class AbstractWorker extends Observable implements Runnable {
     protected String localFile;
     protected String remoteFile;
 
-    public AbstractWorker(InetAddress remoteHost, DatagramSocket socket, String localFile, String remoteFile) {
+    public AbstractWorker(InetAddress remoteHost, String localFile, String remoteFile) throws SocketException {
         this.remoteHost = remoteHost;
-        this.socket = socket;
+        this.socket = new DatagramSocket();
+        this.socket.setSoTimeout(DEFAULT_TIMEOUT);
         this.localFile = localFile;
         this.remoteFile = remoteFile;
     }
@@ -40,6 +43,8 @@ public abstract class AbstractWorker extends Observable implements Runnable {
     @Override
     public abstract void run();
     
-    public abstract void close();
+    public void close() {
+        socket.close();
+    }
 
 }

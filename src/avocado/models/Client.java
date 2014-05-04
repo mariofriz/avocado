@@ -23,26 +23,23 @@ public class Client {
     public static final String DEFAULT_IP = "127.0.0.1";
     public static final int DEFAULT_TIMEOUT = 30000; //30secs
 
-    private DatagramSocket socket;
     private String remoteIp;
     private InetAddress remoteHost;
     private ExecutorService threadPool;
     private int remotePort;
 
     public Client() throws SocketException {
-        this.socket = new DatagramSocket();
-        this.socket.setSoTimeout(DEFAULT_TIMEOUT);
         this.remotePort = DEFAULT_PORT;
         this.threadPool = Executors.newCachedThreadPool();
     }
 
     public void sendFile(String localFile, String remoteFile) throws IOException {
-        Thread sendThread = new Thread(new SendWorker(remoteHost, socket, localFile, remoteFile));
+        Thread sendThread = new Thread(new SendWorker(remoteHost, localFile, remoteFile));
         threadPool.submit(sendThread);
     }
 
     public void receiveFile(String remoteFile, String localFile) throws FileNotFoundException, IOException {
-        Thread receiveThread = new Thread(new ReceiveWorker(remoteHost, socket, localFile, remoteFile));
+        Thread receiveThread = new Thread(new ReceiveWorker(remoteHost, localFile, remoteFile));
         threadPool.submit(receiveThread);
     }
     
@@ -50,8 +47,6 @@ public class Client {
     {
         // Shutdown all workers
         threadPool.shutdown();
-        // Close socket
-        socket.close();
     }
 
     public String getRemoteIp() {

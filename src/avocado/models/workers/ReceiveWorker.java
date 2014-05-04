@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,8 +26,8 @@ public class ReceiveWorker extends AbstractWorker {
     private DataOutputStream out;
     private File file;
 
-    public ReceiveWorker(InetAddress remoteHost, DatagramSocket socket, String localFile, String remoteFile) {
-        super(remoteHost, socket, localFile, remoteFile);
+    public ReceiveWorker(InetAddress remoteHost, String localFile, String remoteFile) throws SocketException {
+        super(remoteHost, localFile, remoteFile);
     }
 
     @Override
@@ -140,7 +141,7 @@ public class ReceiveWorker extends AbstractWorker {
         } catch (IOException ex) {
             Logger.getLogger(ReceiveWorker.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        super.close();
     }
 
 }

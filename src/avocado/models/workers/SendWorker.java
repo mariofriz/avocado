@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,8 +23,8 @@ public class SendWorker extends AbstractWorker {
 
     private DataInputStream in;
 
-    public SendWorker(InetAddress remoteHost, DatagramSocket socket, String localFile, String remoteFile) {
-        super(remoteHost, socket, localFile, remoteFile);
+    public SendWorker(InetAddress remoteHost, String localFile, String remoteFile) throws SocketException {
+        super(remoteHost, localFile, remoteFile);
     }
 
     @Override
@@ -157,6 +158,7 @@ public class SendWorker extends AbstractWorker {
         } catch (IOException ex) {
             Logger.getLogger(SendWorker.class.getName()).log(Level.SEVERE, null, ex);
         }
+        super.close();
     }
 
 }
